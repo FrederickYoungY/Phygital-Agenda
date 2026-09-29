@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escáner de Agenda Docente</title>
+  <!-- Tailwind CSS para diseño móvel -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Librería para lectura de QR -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+
+  <!-- Encabezado -->
+  <header class="w-full max-w-md bg-indigo-700 text-white p-4 rounded-xl shadow-lg mb-4 text-center">
+    <h1 class="text-xl font-bold">Escáner Agenda Phygital</h1>
+    <p class="text-xs text-indigo-200">Sincroniza tus apuntes con Google Drive</p>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="w-full max-w-md bg-white p-4 rounded-xl shadow border border-gray-200 flex flex-col items-center">
+    
+    <!-- Visor de Cámara para QR -->
+    <div id="reader" class="w-full rounded-lg overflow-hidden mb-4 border-2 border-indigo-500"></div>
+
+    <!-- Estado e Información del QR -->
+    <div id="qr-info" class="w-full bg-indigo-50 p-3 rounded-lg mb-4 text-sm hidden">
+      <p class="font-semibold text-indigo-900">📄 Página Detectada:</p>
+      <p id="page-metadata" class="text-indigo-700 font-mono text-xs break-all"></p>
+    </div>
+
+    <!-- Captura de Fotografía -->
+    <div id="photo-section" class="w-full hidden flex-col items-center">
+      <p class="text-xs text-gray-600 mb-2 text-center">Asegúrate de que toda la hoja sea visible y esté bien iluminada.</p>
+      
+      <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+      
+      <button id="btn-take-photo" onclick="document.getElementById('camera-input').click()" 
+              class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow flex items-center justify-center gap-2 mb-3">
+        📷 Tomar Foto a la Hoja
+      </button>
+
+      <div id="preview-container" class="w-full hidden flex-col items-center">
+        <img id="image-preview" class="w-full rounded-lg border mb-3 max-h-64 object-contain" />
+        <button id="btn-send" onclick="enviarAGoogleDrive()" 
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow flex items-center justify-center gap-2">
+          🚀 Exportar a Google Drive
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback de Estado / Carga -->
+    <div id="status-message" class="mt-4 text-center text-sm font-semibold text-gray-700"></div>
+  </main>
+
+  <script>
+    let qrMetadata = null;
+    let imageBase64 = null;
+
+    // URL de tu implementación de Google Apps Script (se reemplaza al publicar)
+    const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyHCffqPLMJHyGn4L2ZDJLkROwmOQsdMfLeLqSfjXfXJpMh-p4aRNUXIQ40wA25hDIZ/exec";
+
+    // Inicializar Escáner de QR
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
+      (decodedText) => {
+        try {
+          qrMetadata = JSON.parse(decodedText);
+          document.getElementById('page-metadata').innerText = `Sección: ${qrMetadata.seccion} | Destino: ${qrMetadata.tipo_exportacion.toUpperCase()}`;
+          document.getElementById('qr-info').classList.remove('hidden');
+          document.getElementById('photo-section').classList.remove('hidden');
+          document.getElementById('status-message').innerText = "✅ Código de hoja leído. Ahora toma la fotografía.";
+          
+          // Detener escáner QR tras detectar el código
+          html5QrCode.stop();
+          document.getElementById('reader').classList.add('hidden');
+        } catch(e) {
+          console.log("El QR no contiene JSON válido de la agenda:", decodedText);
+        }
+      },
+      (errorMessage) => { /* buscando QR... */ }
+    );
+
+    // Previsualizar la fotografía tomada por la cámara
+    document.getElementById('camera-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          imageBase64 = evt.target.result.split(',')[1]; // Extraer Base64
+          document.getElementById('image-preview').src = evt.target.result;
+          document.getElementById('preview-container').classList.remove('hidden');
+          document.getElementById('status-message').innerText = "Imagen capturada lista para enviar.";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Enviar datos e imagen al Backend en Google Apps Script
+    async function enviarAGoogleDrive() {
+      if (!qrMetadata || !imageBase64) {
+        alert("Falta el código de la hoja o la fotografía.");
+        return;
+      }
+
+      const status = document.getElementById('status-message');
+      status.innerText = "⏳ Procesando con IA y guardando en Google Drive...";
+
+      try {
+        const response = await fetch(GAS_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' }, // Necesario para evitar restricciones CORS en GAS
+          body: JSON.stringify({
+            metadata: qrMetadata,
+            image: imageBase64
+          })
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+          status.innerText = "🎉 ¡Éxito! Datos exportados correctamente a tu Drive.";
+          alert("Los datos han sido guardados exitosamente.");
+          location.reload();
+        } else {
+          status.innerText = "❌ Error: " + result.message;
+        }
+      } catch (err) {
+        status.innerText = "❌ Error de conexión al enviar.";
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
