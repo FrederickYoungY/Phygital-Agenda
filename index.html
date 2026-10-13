@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escáner de Agenda Docente</title>
-  <!-- Tailwind CSS para diseño móvel -->
+  <title>Escáner de Agenda Docente Phygital</title>
+  <!-- Tailwind CSS para diseño móvil -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Librería para lectura de QR -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -58,7 +58,7 @@
     let imageBase64 = null;
 
     // URL de tu implementación de Google Apps Script (se reemplaza al publicar)
-    const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyHCffqPLMJHyGn4L2ZDJLkROwmOQsdMfLeLqSfjXfXJpMh-p4aRNUXIQ40wA25hDIZ/exec";
+    const GAS_WEBHOOK_URL = "RAQ.Ab8RN6LpMYTrkvacZNLvOmA4s-xuY_jnA_hyUsXKy7_R7ZZOdw";
 
     // Inicializar Escáner de QR
     const html5QrCode = new Html5Qrcode("reader");
@@ -68,7 +68,7 @@
       (decodedText) => {
         try {
           qrMetadata = JSON.parse(decodedText);
-          document.getElementById('page-metadata').innerText = `Sección: ${qrMetadata.seccion} | Destino: ${qrMetadata.tipo_exportacion.toUpperCase()}`;
+          document.getElementById('page-metadata').innerText = "Sección: " + qrMetadata.seccion + " | Destino: " + qrMetadata.tipo_exportacion.toUpperCase();
           document.getElementById('qr-info').classList.remove('hidden');
           document.getElementById('photo-section').classList.remove('hidden');
           document.getElementById('status-message').innerText = "✅ Código de hoja leído. Ahora toma la fotografía.";
@@ -111,7 +111,7 @@
       try {
         const response = await fetch(GAS_WEBHOOK_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' }, // Necesario para evitar restricciones CORS en GAS
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
             metadata: qrMetadata,
             image: imageBase64
