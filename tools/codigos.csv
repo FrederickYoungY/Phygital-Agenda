@@ -1,0 +1,311 @@
+﻿pagina;codigo;lado;descripcion
+1;PT;derecha;Portada (logo)
+2;DR;izquierda;Derechos reservados
+3;DP;derecha;Datos personales
+4;B004;izquierda;Página en blanco
+5;IX;derecha;Índice
+6;CG_1;izquierda;Calendario general
+7;CG_2;derecha;Calendario general
+8;MC_1;izquierda;Minicalendarios e hitos
+9;MC_2;derecha;Minicalendarios e hitos
+10;H_L;izquierda;Mi horario
+11;H_R;derecha;Mi horario
+12;M02_P;izquierda;Mes: portada Febrero
+13;M02_H;derecha;Mes: hitos Febrero
+14;M02_L;izquierda;Mes: calendario Febrero
+15;M02_R;derecha;Mes: calendario Febrero
+16;M03_P;izquierda;Mes: portada Marzo
+17;M03_H;derecha;Mes: hitos Marzo
+18;M03_L;izquierda;Mes: calendario Marzo
+19;M03_R;derecha;Mes: calendario Marzo
+20;M04_P;izquierda;Mes: portada Abril
+21;M04_H;derecha;Mes: hitos Abril
+22;M04_L;izquierda;Mes: calendario Abril
+23;M04_R;derecha;Mes: calendario Abril
+24;M05_P;izquierda;Mes: portada Mayo
+25;M05_H;derecha;Mes: hitos Mayo
+26;M05_L;izquierda;Mes: calendario Mayo
+27;M05_R;derecha;Mes: calendario Mayo
+28;M06_P;izquierda;Mes: portada Junio
+29;M06_H;derecha;Mes: hitos Junio
+30;M06_L;izquierda;Mes: calendario Junio
+31;M06_R;derecha;Mes: calendario Junio
+32;M07_P;izquierda;Mes: portada Julio
+33;M07_H;derecha;Mes: hitos Julio
+34;M07_L;izquierda;Mes: calendario Julio
+35;M07_R;derecha;Mes: calendario Julio
+36;M08_P;izquierda;Mes: portada Agosto
+37;M08_H;derecha;Mes: hitos Agosto
+38;M08_L;izquierda;Mes: calendario Agosto
+39;M08_R;derecha;Mes: calendario Agosto
+40;M09_P;izquierda;Mes: portada Septiembre
+41;M09_H;derecha;Mes: hitos Septiembre
+42;M09_L;izquierda;Mes: calendario Septiembre
+43;M09_R;derecha;Mes: calendario Septiembre
+44;M10_P;izquierda;Mes: portada Octubre
+45;M10_H;derecha;Mes: hitos Octubre
+46;M10_L;izquierda;Mes: calendario Octubre
+47;M10_R;derecha;Mes: calendario Octubre
+48;M11_P;izquierda;Mes: portada Noviembre
+49;M11_H;derecha;Mes: hitos Noviembre
+50;M11_L;izquierda;Mes: calendario Noviembre
+51;M11_R;derecha;Mes: calendario Noviembre
+52;M12_P;izquierda;Mes: portada Diciembre
+53;M12_H;derecha;Mes: hitos Diciembre
+54;M12_L;izquierda;Mes: calendario Diciembre
+55;M12_R;derecha;Mes: calendario Diciembre
+56;B056;izquierda;Página en blanco
+57;J_P;derecha;Portada Jefatura
+58;J_A;izquierda;Alumnos de mi jefatura
+59;J_C;derecha;Cumpleaños del curso
+60;B060;izquierda;Página en blanco
+61;C_P;derecha;Portada Cursos
+62;C01_S1;izquierda;Curso: notas 01 · 1° sem.
+63;C01_S2;derecha;Curso: notas 01 · 2° sem.
+64;C01_T1;izquierda;Curso: temporalización 01 · 1° sem.
+65;C01_T2;derecha;Curso: temporalización 01 · 2° sem.
+66;C02_S1;izquierda;Curso: notas 02 · 1° sem.
+67;C02_S2;derecha;Curso: notas 02 · 2° sem.
+68;C02_T1;izquierda;Curso: temporalización 02 · 1° sem.
+69;C02_T2;derecha;Curso: temporalización 02 · 2° sem.
+70;C03_S1;izquierda;Curso: notas 03 · 1° sem.
+71;C03_S2;derecha;Curso: notas 03 · 2° sem.
+72;C03_T1;izquierda;Curso: temporalización 03 · 1° sem.
+73;C03_T2;derecha;Curso: temporalización 03 · 2° sem.
+74;C04_S1;izquierda;Curso: notas 04 · 1° sem.
+75;C04_S2;derecha;Curso: notas 04 · 2° sem.
+76;C04_T1;izquierda;Curso: temporalización 04 · 1° sem.
+77;C04_T2;derecha;Curso: temporalización 04 · 2° sem.
+78;C05_S1;izquierda;Curso: notas 05 · 1° sem.
+79;C05_S2;derecha;Curso: notas 05 · 2° sem.
+80;C05_T1;izquierda;Curso: temporalización 05 · 1° sem.
+81;C05_T2;derecha;Curso: temporalización 05 · 2° sem.
+82;C06_S1;izquierda;Curso: notas 06 · 1° sem.
+83;C06_S2;derecha;Curso: notas 06 · 2° sem.
+84;C06_T1;izquierda;Curso: temporalización 06 · 1° sem.
+85;C06_T2;derecha;Curso: temporalización 06 · 2° sem.
+86;C07_S1;izquierda;Curso: notas 07 · 1° sem.
+87;C07_S2;derecha;Curso: notas 07 · 2° sem.
+88;C07_T1;izquierda;Curso: temporalización 07 · 1° sem.
+89;C07_T2;derecha;Curso: temporalización 07 · 2° sem.
+90;C08_S1;izquierda;Curso: notas 08 · 1° sem.
+91;C08_S2;derecha;Curso: notas 08 · 2° sem.
+92;C08_T1;izquierda;Curso: temporalización 08 · 1° sem.
+93;C08_T2;derecha;Curso: temporalización 08 · 2° sem.
+94;C09_S1;izquierda;Curso: notas 09 · 1° sem.
+95;C09_S2;derecha;Curso: notas 09 · 2° sem.
+96;C09_T1;izquierda;Curso: temporalización 09 · 1° sem.
+97;C09_T2;derecha;Curso: temporalización 09 · 2° sem.
+98;C10_S1;izquierda;Curso: notas 10 · 1° sem.
+99;C10_S2;derecha;Curso: notas 10 · 2° sem.
+100;C10_T1;izquierda;Curso: temporalización 10 · 1° sem.
+101;C10_T2;derecha;Curso: temporalización 10 · 2° sem.
+102;C11_S1;izquierda;Curso: notas 11 · 1° sem.
+103;C11_S2;derecha;Curso: notas 11 · 2° sem.
+104;C11_T1;izquierda;Curso: temporalización 11 · 1° sem.
+105;C11_T2;derecha;Curso: temporalización 11 · 2° sem.
+106;C12_S1;izquierda;Curso: notas 12 · 1° sem.
+107;C12_S2;derecha;Curso: notas 12 · 2° sem.
+108;C12_T1;izquierda;Curso: temporalización 12 · 1° sem.
+109;C12_T2;derecha;Curso: temporalización 12 · 2° sem.
+110;C13_S1;izquierda;Curso: notas 13 · 1° sem.
+111;C13_S2;derecha;Curso: notas 13 · 2° sem.
+112;C13_T1;izquierda;Curso: temporalización 13 · 1° sem.
+113;C13_T2;derecha;Curso: temporalización 13 · 2° sem.
+114;C14_S1;izquierda;Curso: notas 14 · 1° sem.
+115;C14_S2;derecha;Curso: notas 14 · 2° sem.
+116;C14_T1;izquierda;Curso: temporalización 14 · 1° sem.
+117;C14_T2;derecha;Curso: temporalización 14 · 2° sem.
+118;C15_S1;izquierda;Curso: notas 15 · 1° sem.
+119;C15_S2;derecha;Curso: notas 15 · 2° sem.
+120;C15_T1;izquierda;Curso: temporalización 15 · 1° sem.
+121;C15_T2;derecha;Curso: temporalización 15 · 2° sem.
+122;B122;izquierda;Página en blanco
+123;S_P;derecha;Portada Planificación
+124;S01_L;izquierda;Planificación semanal 01 (lun–mié)
+125;S01_R;derecha;Planificación semanal 01 (jue–sáb)
+126;S02_L;izquierda;Planificación semanal 02 (lun–mié)
+127;S02_R;derecha;Planificación semanal 02 (jue–sáb)
+128;S03_L;izquierda;Planificación semanal 03 (lun–mié)
+129;S03_R;derecha;Planificación semanal 03 (jue–sáb)
+130;S04_L;izquierda;Planificación semanal 04 (lun–mié)
+131;S04_R;derecha;Planificación semanal 04 (jue–sáb)
+132;S05_L;izquierda;Planificación semanal 05 (lun–mié)
+133;S05_R;derecha;Planificación semanal 05 (jue–sáb)
+134;S06_L;izquierda;Planificación semanal 06 (lun–mié)
+135;S06_R;derecha;Planificación semanal 06 (jue–sáb)
+136;S07_L;izquierda;Planificación semanal 07 (lun–mié)
+137;S07_R;derecha;Planificación semanal 07 (jue–sáb)
+138;S08_L;izquierda;Planificación semanal 08 (lun–mié)
+139;S08_R;derecha;Planificación semanal 08 (jue–sáb)
+140;S09_L;izquierda;Planificación semanal 09 (lun–mié)
+141;S09_R;derecha;Planificación semanal 09 (jue–sáb)
+142;S10_L;izquierda;Planificación semanal 10 (lun–mié)
+143;S10_R;derecha;Planificación semanal 10 (jue–sáb)
+144;S11_L;izquierda;Planificación semanal 11 (lun–mié)
+145;S11_R;derecha;Planificación semanal 11 (jue–sáb)
+146;S12_L;izquierda;Planificación semanal 12 (lun–mié)
+147;S12_R;derecha;Planificación semanal 12 (jue–sáb)
+148;S13_L;izquierda;Planificación semanal 13 (lun–mié)
+149;S13_R;derecha;Planificación semanal 13 (jue–sáb)
+150;S14_L;izquierda;Planificación semanal 14 (lun–mié)
+151;S14_R;derecha;Planificación semanal 14 (jue–sáb)
+152;S15_L;izquierda;Planificación semanal 15 (lun–mié)
+153;S15_R;derecha;Planificación semanal 15 (jue–sáb)
+154;S16_L;izquierda;Planificación semanal 16 (lun–mié)
+155;S16_R;derecha;Planificación semanal 16 (jue–sáb)
+156;S17_L;izquierda;Planificación semanal 17 (lun–mié)
+157;S17_R;derecha;Planificación semanal 17 (jue–sáb)
+158;S18_L;izquierda;Planificación semanal 18 (lun–mié)
+159;S18_R;derecha;Planificación semanal 18 (jue–sáb)
+160;S19_L;izquierda;Planificación semanal 19 (lun–mié)
+161;S19_R;derecha;Planificación semanal 19 (jue–sáb)
+162;S20_L;izquierda;Planificación semanal 20 (lun–mié)
+163;S20_R;derecha;Planificación semanal 20 (jue–sáb)
+164;S21_L;izquierda;Planificación semanal 21 (lun–mié)
+165;S21_R;derecha;Planificación semanal 21 (jue–sáb)
+166;S22_L;izquierda;Planificación semanal 22 (lun–mié)
+167;S22_R;derecha;Planificación semanal 22 (jue–sáb)
+168;S23_L;izquierda;Planificación semanal 23 (lun–mié)
+169;S23_R;derecha;Planificación semanal 23 (jue–sáb)
+170;S24_L;izquierda;Planificación semanal 24 (lun–mié)
+171;S24_R;derecha;Planificación semanal 24 (jue–sáb)
+172;S25_L;izquierda;Planificación semanal 25 (lun–mié)
+173;S25_R;derecha;Planificación semanal 25 (jue–sáb)
+174;S26_L;izquierda;Planificación semanal 26 (lun–mié)
+175;S26_R;derecha;Planificación semanal 26 (jue–sáb)
+176;S27_L;izquierda;Planificación semanal 27 (lun–mié)
+177;S27_R;derecha;Planificación semanal 27 (jue–sáb)
+178;S28_L;izquierda;Planificación semanal 28 (lun–mié)
+179;S28_R;derecha;Planificación semanal 28 (jue–sáb)
+180;S29_L;izquierda;Planificación semanal 29 (lun–mié)
+181;S29_R;derecha;Planificación semanal 29 (jue–sáb)
+182;S30_L;izquierda;Planificación semanal 30 (lun–mié)
+183;S30_R;derecha;Planificación semanal 30 (jue–sáb)
+184;S31_L;izquierda;Planificación semanal 31 (lun–mié)
+185;S31_R;derecha;Planificación semanal 31 (jue–sáb)
+186;S32_L;izquierda;Planificación semanal 32 (lun–mié)
+187;S32_R;derecha;Planificación semanal 32 (jue–sáb)
+188;S33_L;izquierda;Planificación semanal 33 (lun–mié)
+189;S33_R;derecha;Planificación semanal 33 (jue–sáb)
+190;S34_L;izquierda;Planificación semanal 34 (lun–mié)
+191;S34_R;derecha;Planificación semanal 34 (jue–sáb)
+192;S35_L;izquierda;Planificación semanal 35 (lun–mié)
+193;S35_R;derecha;Planificación semanal 35 (jue–sáb)
+194;S36_L;izquierda;Planificación semanal 36 (lun–mié)
+195;S36_R;derecha;Planificación semanal 36 (jue–sáb)
+196;S37_L;izquierda;Planificación semanal 37 (lun–mié)
+197;S37_R;derecha;Planificación semanal 37 (jue–sáb)
+198;S38_L;izquierda;Planificación semanal 38 (lun–mié)
+199;S38_R;derecha;Planificación semanal 38 (jue–sáb)
+200;S39_L;izquierda;Planificación semanal 39 (lun–mié)
+201;S39_R;derecha;Planificación semanal 39 (jue–sáb)
+202;S40_L;izquierda;Planificación semanal 40 (lun–mié)
+203;S40_R;derecha;Planificación semanal 40 (jue–sáb)
+204;S41_L;izquierda;Planificación semanal 41 (lun–mié)
+205;S41_R;derecha;Planificación semanal 41 (jue–sáb)
+206;B206;izquierda;Página en blanco
+207;E_P;derecha;Portada Entrevistas
+208;E01;izquierda;Entrevista con apoderado
+209;E02;derecha;Entrevista con apoderado
+210;E03;izquierda;Entrevista con apoderado
+211;E04;derecha;Entrevista con apoderado
+212;E05;izquierda;Entrevista con apoderado
+213;E06;derecha;Entrevista con apoderado
+214;E07;izquierda;Entrevista con apoderado
+215;E08;derecha;Entrevista con apoderado
+216;E09;izquierda;Entrevista con apoderado
+217;E10;derecha;Entrevista con apoderado
+218;E11;izquierda;Entrevista con apoderado
+219;E12;derecha;Entrevista con apoderado
+220;E13;izquierda;Entrevista con apoderado
+221;E14;derecha;Entrevista con apoderado
+222;E15;izquierda;Entrevista con apoderado
+223;E16;derecha;Entrevista con apoderado
+224;E17;izquierda;Entrevista con apoderado
+225;E18;derecha;Entrevista con apoderado
+226;E19;izquierda;Entrevista con apoderado
+227;E20;derecha;Entrevista con apoderado
+228;E21;izquierda;Entrevista con apoderado
+229;E22;derecha;Entrevista con apoderado
+230;E23;izquierda;Entrevista con apoderado
+231;E24;derecha;Entrevista con apoderado
+232;E25;izquierda;Entrevista con apoderado
+233;E26;derecha;Entrevista con apoderado
+234;E27;izquierda;Entrevista con apoderado
+235;E28;derecha;Entrevista con apoderado
+236;E29;izquierda;Entrevista con apoderado
+237;E30;derecha;Entrevista con apoderado
+238;E31;izquierda;Entrevista con apoderado
+239;E32;derecha;Entrevista con apoderado
+240;E33;izquierda;Entrevista con apoderado
+241;E34;derecha;Entrevista con apoderado
+242;E35;izquierda;Entrevista con apoderado
+243;E36;derecha;Entrevista con apoderado
+244;E37;izquierda;Entrevista con apoderado
+245;E38;derecha;Entrevista con apoderado
+246;E39;izquierda;Entrevista con apoderado
+247;E40;derecha;Entrevista con apoderado
+248;E41;izquierda;Entrevista con apoderado
+249;E42;derecha;Entrevista con apoderado
+250;E43;izquierda;Entrevista con apoderado
+251;E44;derecha;Entrevista con apoderado
+252;E45;izquierda;Entrevista con apoderado
+253;E46;derecha;Entrevista con apoderado
+254;E47;izquierda;Entrevista con apoderado
+255;E48;derecha;Entrevista con apoderado
+256;E49;izquierda;Entrevista con apoderado
+257;E50;derecha;Entrevista con apoderado
+258;E51;izquierda;Entrevista con apoderado
+259;E52;derecha;Entrevista con apoderado
+260;E53;izquierda;Entrevista con apoderado
+261;E54;derecha;Entrevista con apoderado
+262;E55;izquierda;Entrevista con apoderado
+263;E56;derecha;Entrevista con apoderado
+264;E57;izquierda;Entrevista con apoderado
+265;E58;derecha;Entrevista con apoderado
+266;E59;izquierda;Entrevista con apoderado
+267;E60;derecha;Entrevista con apoderado
+268;B268;izquierda;Página en blanco
+269;A_P;derecha;Portada Apuntes
+270;A01;izquierda;Hoja de apuntes
+271;A02;derecha;Hoja de apuntes
+272;A03;izquierda;Hoja de apuntes
+273;A04;derecha;Hoja de apuntes
+274;A05;izquierda;Hoja de apuntes
+275;A06;derecha;Hoja de apuntes
+276;A07;izquierda;Hoja de apuntes
+277;A08;derecha;Hoja de apuntes
+278;A09;izquierda;Hoja de apuntes
+279;A10;derecha;Hoja de apuntes
+280;A11;izquierda;Hoja de apuntes
+281;A12;derecha;Hoja de apuntes
+282;A13;izquierda;Hoja de apuntes
+283;A14;derecha;Hoja de apuntes
+284;A15;izquierda;Hoja de apuntes
+285;A16;derecha;Hoja de apuntes
+286;A17;izquierda;Hoja de apuntes
+287;A18;derecha;Hoja de apuntes
+288;A19;izquierda;Hoja de apuntes
+289;A20;derecha;Hoja de apuntes
+290;A21;izquierda;Hoja de apuntes
+291;A22;derecha;Hoja de apuntes
+292;A23;izquierda;Hoja de apuntes
+293;A24;derecha;Hoja de apuntes
+294;A25;izquierda;Hoja de apuntes
+295;A26;derecha;Hoja de apuntes
+296;A27;izquierda;Hoja de apuntes
+297;A28;derecha;Hoja de apuntes
+298;A29;izquierda;Hoja de apuntes
+299;A30;derecha;Hoja de apuntes
+300;A31;izquierda;Hoja de apuntes
+301;A32;derecha;Hoja de apuntes
+302;A33;izquierda;Hoja de apuntes
+303;A34;derecha;Hoja de apuntes
+304;A35;izquierda;Hoja de apuntes
+305;A36;derecha;Hoja de apuntes
+306;A37;izquierda;Hoja de apuntes
+307;A38;derecha;Hoja de apuntes
+308;A39;izquierda;Hoja de apuntes
+309;A40;derecha;Hoja de apuntes
+310;B310;izquierda;Página en blanco
