@@ -3,7 +3,7 @@
 // ============================================================================
 import { routeFor } from './config.js';
 import { CATALOG } from './catalog.js';
-import { detectInFrame, processPhoto, fontsWarmup } from './pipeline.js';
+import { detectInFrame, processPhoto, fontsWarmup, frameSharpness } from './pipeline.js';
 import { getAccount, sendScan, flushQueue, queue } from './api.js';
 import { linkAccount, unlinkAccount } from './auth.js';
 
@@ -37,7 +37,7 @@ $('btn-link').addEventListener('click', async () => {
       st.textContent = 'Falta un paso: vuelve a tocar el botón para confirmar los permisos.';
     } else {
       st.textContent = '';
-      toast('Cuenta vinculada: ' + r.email);
+      toast(IN_APP ? 'Cuenta vinculada. Recuerda: ábrela en Chrome o Brave para que quede guardada.' : 'Cuenta vinculada: ' + r.email, IN_APP ? 5000 : 2600);
       show('v-scan');
     }
   } catch (e) { st.textContent = e.message; }
@@ -61,7 +61,7 @@ async function startCamera() {
   try {
     const caps = state.track.getCapabilities?.() || {};
     if (caps.torch) $('btn-torch').classList.remove('hidden');
-    if (caps.focusMode?.includes('continuous')) state.track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+    if (caps.focusMode?.includes('continuous')) await state.track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
   } catch { /* opcional */ }
   loop();
 }
@@ -72,30 +72,59 @@ function stopCamera() {
 
 const work = document.createElement('canvas');
 let lastT = 0;
+const HOLD_MS = 500;           // mantener el último marco medio segundo si se pierde la página
+const SMOOTH = 0.35;           // suavizado del marco (0 = quieto, 1 = sin suavizar)
+const view = { smooth: null, seen: 0, sharpMax: 0 };
+
+/** Reordena los puntos nuevos para que cada uno siga a su esquina anterior (evita "saltos" de orden). */
+function matchOrder(prev, pts) {
+  if (!prev) return pts;
+  const used = new Set(), out = [];
+  for (const p of prev) {
+    let bi = -1, bd = Infinity;
+    pts.forEach((q, i) => { if (used.has(i)) return; const d = Math.hypot(p.x - q.x, p.y - q.y); if (d < bd) { bd = d; bi = i; } });
+    used.add(bi); out.push(pts[bi]);
+  }
+  return out;
+}
+
 function loop(t = 0) {
   state.loop = requestAnimationFrame(loop);
   if (state.busy || t - lastT < 110) return;           // ~9 análisis por segundo
   lastT = t;
   const v = $('cam');
-  const pts = detectInFrame(v, work);
-  drawOverlay(v, pts);
-  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', !!pts));
-  if (!pts) {
-    state.stable = 0; state.last = null;
-    $('scan-hint').textContent = 'Encuadra la página completa: busca los 4 cuadrados negros';
-    $('btn-shutter').classList.remove('armed');
-    return;
+  const { pts: raw, sharp } = detectInFrame(v, work);
+  const now = performance.now();
+  const diag = Math.hypot(v.videoWidth, v.videoHeight) || 1;
+
+  if (raw) {
+    const pts = matchOrder(state.last, raw);
+    const moved = state.last ? Math.max(...pts.map((p, i) => Math.hypot(p.x - state.last[i].x, p.y - state.last[i].y))) / diag : 1;
+    state.stable = moved < 0.01 ? state.stable + 1 : 0;
+    state.last = pts;
+    // marco suavizado: si el salto es grande (otra página / otro encuadre) se reinicia
+    view.smooth = (!view.smooth || moved > 0.08) ? pts.map(p => ({ ...p }))
+      : view.smooth.map((p, i) => ({ x: p.x + (pts[i].x - p.x) * SMOOTH, y: p.y + (pts[i].y - p.y) * SMOOTH }));
+    view.seen = now;
+    view.sharpMax = Math.max(view.sharpMax * 0.98, sharp);
+  } else if (now - view.seen > HOLD_MS) {
+    state.stable = 0; state.last = null; view.smooth = null;
   }
-  const diag = Math.hypot(v.videoWidth, v.videoHeight);
-  const moved = state.last ? Math.max(...pts.map((p, i) => Math.hypot(p.x - state.last[i].x, p.y - state.last[i].y))) / diag : 1;
-  state.stable = moved < 0.012 ? state.stable + 1 : 0;
-  state.last = pts;
-  $('btn-shutter').classList.add('armed');
-  $('scan-hint').textContent = state.auto ? (state.stable > 1 ? 'Quieto… capturando' : 'Página detectada. Mantén el teléfono quieto') : 'Página detectada. Toca el botón para capturar';
-  if (state.auto && state.stable >= 6) capture();
+  const showing = !!view.smooth;
+  drawOverlay(v, view.smooth, raw ? 1 : 0.45);
+  document.querySelectorAll('.dot').forEach(d => d.classList.toggle('on', showing));
+  $('btn-shutter').classList.toggle('armed', showing);
+  if (!showing) { $('scan-hint').textContent = 'Encuadra la página completa: busca los 4 cuadrados negros'; return; }
+  if (!raw) return;
+
+  const nitida = sharp >= view.sharpMax * 0.7;
+  if (!state.auto) { $('scan-hint').textContent = 'Página detectada. Toca el botón para capturar'; return; }
+  $('scan-hint').textContent = !nitida ? 'Enfocando… mantén el teléfono quieto'
+    : state.stable > 2 ? 'Quieto… capturando' : 'Página detectada. Mantén el teléfono quieto';
+  if (state.stable >= 5 && nitida) capture();
 }
 
-function drawOverlay(v, pts) {
+function drawOverlay(v, pts, alpha = 1) {
   const c = $('overlay'), r = c.getBoundingClientRect(), dpr = devicePixelRatio || 1;
   if (c.width !== Math.round(r.width * dpr)) { c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); }
   const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
@@ -108,28 +137,59 @@ function drawOverlay(v, pts) {
     return;
   }
   const P = pts.map(p => ({ x: ox + p.x * k, y: oy + p.y * k }));
-  ctx.fillStyle = 'rgba(220,230,214,.18)'; ctx.strokeStyle = '#DCE6D6'; ctx.lineWidth = 2;
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = 'rgba(220,230,214,.16)'; ctx.strokeStyle = '#DCE6D6'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
   ctx.beginPath(); P.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.closePath(); ctx.fill(); ctx.stroke();
-  for (const p of P) { ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2); ctx.stroke(); }
+  for (const p of P) { ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.globalAlpha = 1;
 }
 
 // ------------------------------------------------------------------ captura
-async function grabStill() {
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/** Toma varias imágenes seguidas del video y devuelve la más nítida. */
+async function grabBest(n = 4) {
   const v = $('cam');
-  if (state.track && 'ImageCapture' in window) {
-    try { return await new ImageCapture(state.track).takePhoto(); } catch { /* fallback al frame */ }
+  const cands = [];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v, 0, 0);
+    cands.push({ src: c, sharp: frameSharpness(c) });
+    if (i < n - 1) await sleep(70);
   }
-  const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
-  c.getContext('2d').drawImage(v, 0, 0); return c;
+  // si el video es de baja resolución, se suma una foto de la cámara (si el navegador lo permite)
+  if (v.videoWidth * v.videoHeight < 2.5e6 && state.track && 'ImageCapture' in window) {
+    try {
+      const blob = await new ImageCapture(state.track).takePhoto();
+      const bmp = await createImageBitmap(blob);
+      cands.push({ src: bmp, sharp: frameSharpness(bmp) * 0.9 });
+    } catch { /* opcional */ }
+  }
+  cands.sort((a, b) => b.sharp - a.sharp);
+  return cands.map(c => c.src);
 }
+
+const GOOD = r => r && r.score >= 0.6;
 
 async function capture(fileBlob) {
   if (state.busy) return;
   state.busy = true; state.stable = 0;
   busy(true, 'Enderezando la página…', 'Buscando los cuadrados y el código');
   try {
-    const src = fileBlob || await grabStill();
-    const r = await processPhoto(src);
+    let r = null;
+    if (fileBlob) {
+      r = await processPhoto(fileBlob);
+    } else {
+      // hasta 2 intentos: en cada uno se prueban las imágenes de la más nítida a la menos nítida
+      for (let intento = 0; intento < 2 && !GOOD(r); intento++) {
+        if (intento) { $('busy-sub').textContent = 'La foto salió movida, tomando otra…'; await sleep(250); }
+        for (const src of (await grabBest()).slice(0, 2)) {
+          const x = await processPhoto(src);
+          if (x && (!r || x.score > r.score)) r = x;
+          if (GOOD(r)) break;
+        }
+      }
+    }
     if (!r) {
       toast('No encontré los 4 cuadrados. Acércate y que se vea la hoja completa.', 3500);
       return;
@@ -138,7 +198,7 @@ async function capture(fileBlob) {
     openReview(r);
   } catch (e) {
     console.error(e); toast('Error al procesar la foto: ' + e.message, 4000);
-  } finally { busy(false); state.busy = false; }
+  } finally { busy(false); state.busy = false; view.smooth = null; state.last = null; }
 }
 
 $('btn-shutter').addEventListener('click', () => capture());
@@ -215,7 +275,7 @@ $('btn-send').addEventListener('click', async () => {
     page_id: state.pageId,
     page_desc: BY_ID.get(state.pageId)?.desc || '',
     id_check: { auto_id: r.id, score: +r.score.toFixed(3), margin: +r.margin.toFixed(3), confirmed: state.pageId !== r.id || CONFIDENT(r),
-                alternatives: [...new Set(r.ranking.map(x => x.id))].slice(0, 4) },
+                alternatives: [...new Set(r.ranking.map(x => x.id))].slice(0, 8) },
     image: r.flatDataUrl.split(',')[1],
     original: r.originalDataUrl.split(',')[1],
     captured_at: new Date().toISOString(),
@@ -245,6 +305,10 @@ function renderResult(res) {
     $('res-text').textContent = (res.page_id !== state.pageId ? `Gemini corrigió el código a ${res.page_id}. ` : '') + (res.resumen || '');
     if (res.target_url) { $('res-open').href = res.target_url; $('res-open').classList.remove('hidden');
       $('res-open').textContent = res.destino === 'sheet' ? 'Abrir en Hojas de cálculo' : res.destino === 'doc' ? 'Abrir el documento' : 'Ver la foto en Drive'; }
+  } else if (queued && res.reason === 'busy') {
+    $('res-kicker').textContent = 'Gemini está saturado';
+    $('res-title').textContent = 'Tu página quedó guardada';
+    $('res-text').textContent = 'La foto ya está en tu Drive. La app volverá a intentarlo sola en unos minutos (deja la app abierta o vuelve a abrirla más tarde).';
   } else if (queued) {
     $('res-kicker').textContent = 'Sin conexión';
     $('res-title').textContent = 'Quedó en cola';
@@ -280,7 +344,20 @@ async function refreshQueueBadge() {
   $('btn-queue').textContent = `${n} pendiente${n === 1 ? '' : 's'}`;
 }
 $('btn-queue').addEventListener('click', () => flushQueue().then(refreshQueueBadge));
-addEventListener('online', () => flushQueue(r => r.status === 'ok' && toast('Enviado: ' + r.page_id)).then(refreshQueueBadge));
+const flushNow = () => flushQueue(r => r.status === 'ok' && toast('Página procesada: ' + r.page_id)).then(refreshQueueBadge);
+addEventListener('online', flushNow);
+// reintento automático de la cola (p. ej. cuando Gemini estaba saturado)
+setInterval(async () => { if (navigator.onLine && await queue.count().catch(() => 0)) flushNow(); }, 120000);
+
+// ------------------------------------------------------------------ navegador integrado (Claude, WhatsApp, Instagram…)
+const UA = navigator.userAgent;
+const IN_APP = /; wv\)|FBAN|FBAV|Instagram|Line\/|WhatsApp|Claude/i.test(UA) || (/iPhone|iPad/.test(UA) && !/Safari\//.test(UA));
+function storageWorks() {
+  try { localStorage.setItem('phygital.t', '1'); const ok = localStorage.getItem('phygital.t') === '1'; localStorage.removeItem('phygital.t'); return ok; }
+  catch { return false; }
+}
+if (IN_APP || !storageWorks()) $('browser-warn').classList.remove('hidden');
+navigator.storage?.persist?.().catch(() => {});
 
 // ------------------------------------------------------------------ inicio
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});

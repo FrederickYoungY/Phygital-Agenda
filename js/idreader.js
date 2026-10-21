@@ -16,9 +16,8 @@ const tplCache = new Map();  // `${font}|${id}` → plantilla
 
 export function loadFonts(base = './fonts/') {
   if (!fontsReady) {
-    const faces = [new FontFace('PhyPoppins', `url(${base}Poppins-Regular.ttf)`),
-                   new FontFace('PhyJosefin', `url(${base}JosefinSans-Regular.ttf)`)];
-    fontsReady = Promise.all(faces.map(f => f.load().then(ff => { document.fonts.add(ff); return ff; })));
+    fontsReady = Promise.all(PAGE.CODE_FONTS.map(f => new FontFace(f.family, `url(${base}${f.file})`).load()
+      .then(ff => { document.fonts.add(ff); return ff; })));
   }
   return fontsReady;
 }
@@ -28,13 +27,15 @@ function makeCanvas(w, h) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; return c;
 }
 
-function template(id, font) {
+function template(id, fnt) {
+  const font = fnt.family;
   const key = font + '|' + id;
   if (tplCache.has(key)) return tplCache.get(key);
   const w = Math.round(STRIP.LEN * S), h = Math.round((STRIP.ASC + STRIP.DESC) * S);
   const cv = makeCanvas(w, h), ctx = cv.getContext('2d');
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#000'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.textBaseline = 'alphabetic';
+  ctx.lineWidth = (fnt.stroke || 0) * S; ctx.lineJoin = 'round';
   ctx.filter = 'blur(0.9px)';   // la foto nunca es tan nítida como la plantilla
   ctx.font = `${PAGE.CODE_SIZE * S}px ${font}`;
   let x = STRIP.PRE * S;
@@ -42,6 +43,7 @@ function template(id, font) {
   for (const ch of id) {
     const cw = ctx.measureText(ch).width;
     ctx.fillText(ch, x, STRIP.ASC * S);
+    if (fnt.stroke) ctx.strokeText(ch, x, STRIP.ASC * S);
     chars.push({ a: Math.floor(x - 1), b: Math.ceil(x + cw + 1) });
     x += cw + PAGE.CODE_CS * S;
   }
@@ -151,7 +153,7 @@ export async function identifyPage(src, imgPts, catalog = CATALOG) {
       for (const f of PAGE.CODE_FONTS) {
         const T = template(id, f);
         const r = ncc(strip, T, 4);
-        results.push({ id, font: f, score: r.c, coarse: r.c, hy, T, dx: r.dx, dy: r.dy, strip });
+        results.push({ id, font: f.family, score: r.c, coarse: r.c, hy, T, dx: r.dx, dy: r.dy, strip });
       }
     }
   }
@@ -167,7 +169,7 @@ export async function identifyPage(src, imgPts, catalog = CATALOG) {
   return {
     id: top.id, score: top.score, margin: top.score - (second ? second.score : 0),
     side: top.hy.side, rot: top.hy.rot, H: top.hy.H,
-    ranking: results.slice(0, 6).map(r => ({ id: r.id, font: r.font, score: +r.score.toFixed(3), coarse: +r.coarse.toFixed(3), dx: r.dx, dy: r.dy })), font: top.font,
+    ranking: results.slice(0, 16).map(r => ({ id: r.id, font: r.font, score: +r.score.toFixed(3), coarse: +r.coarse.toFixed(3), dx: r.dx, dy: r.dy })), font: top.font,
   };
 }
 

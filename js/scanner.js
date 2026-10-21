@@ -283,3 +283,19 @@ export function extractCodeStrip(src, H, side, s = 3, lenPt = STRIP.LEN) {
   });
   return out;
 }
+
+// ---------------------------------------------- 6) nitidez (varianza del laplaciano)
+/** Mide qué tan nítida está una zona (valores altos = nítida). Muestrea cada 2 px. */
+export function sharpness(g, w, h, x0 = 0, y0 = 0, x1 = w, y1 = h) {
+  x0 = Math.max(1, Math.floor(x0)); y0 = Math.max(1, Math.floor(y0));
+  x1 = Math.min(w - 1, Math.ceil(x1)); y1 = Math.min(h - 1, Math.ceil(y1));
+  let s = 0, s2 = 0, n = 0;
+  for (let y = y0; y < y1; y += 2) {
+    const o = y * w;
+    for (let x = x0; x < x1; x += 2) {
+      const L = 4 * g[o + x] - g[o + x - 1] - g[o + x + 1] - g[o + x - w] - g[o + x + w];
+      s += L; s2 += L * L; n++;
+    }
+  }
+  return n ? s2 / n - (s / n) ** 2 : 0;
+}

@@ -54,12 +54,19 @@ export const queue = {
 export async function sendScan(payload) {
   const acc = getAccount();
   if (!navigator.onLine) { await queue.add(payload); return { status: 'queued' }; }
+  let r;
   try {
-    return await call('scan', { session: acc?.session, ...payload });
+    r = await call('scan', { session: acc?.session, ...payload });
   } catch (e) {
     await queue.add(payload);
     return { status: 'queued' };
   }
+  // Gemini saturado: la foto ya quedó en Drive; se reintenta sola más tarde (sin volver a subir la original)
+  if (r.status === 'error' && r.code === 'busy') {
+    await queue.add({ ...payload, retry: 1 });
+    return { status: 'queued', reason: 'busy', message: r.message };
+  }
+  return r;
 }
 
 let flushing = false;
@@ -73,7 +80,7 @@ export async function flushQueue(onProgress) {
       let r;
       try { r = await call('scan', { session: getAccount()?.session, ...payload }); } catch { break; }
       if (r.status === 'ok' || (r.status === 'error' && r.code !== 'reauth' && r.code !== 'busy')) await queue.remove(qid);
-      if (r.code === 'reauth') break;
+      if (r.code === 'reauth' || r.code === 'busy') break;
       onProgress && onProgress(r, payload);
     }
   } finally { flushing = false; }

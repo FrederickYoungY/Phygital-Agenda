@@ -17,19 +17,23 @@ export const OAUTH_SCOPES = 'openid email https://www.googleapis.com/auth/drive.
 //  generar_agenda_v31.py. Si cambias tamaño o posición de los cuadrados en la
 //  agenda, cambia SOLO estos números.
 // ----------------------------------------------------------------------------
+const MM = 72 / 25.4;
 export const PAGE = {
   W: 498.898,          // ancho B5 (176 mm)
   H: 708.661,          // alto  B5 (250 mm)
-  MARKER: 6.5,         // lado del cuadrado negro (6,5 pt ≈ 2,3 mm). Si lo agrandas a 5 mm → 14.17
+  MARKER: 4 * MM,      // lado del cuadrado negro (v3.2: 4 mm)
+  CLEAR: 2 * MM,       // papel limpio alrededor del cuadrado (v3.2: 2 mm)
   M_OUT: 22,           // centro del cuadrado al borde EXTERIOR (lado del código)
   M_INN: 46,           // centro del cuadrado al borde del ANILLO
   M_V: 22,             // centro del cuadrado al borde superior / inferior
   // Código de página: rotado 90°, sobre el cuadrado inferior exterior, se lee de abajo hacia arriba
-  CODE_SIZE: 7,        // tamaño de letra
-  CODE_CS: 0.8,        // espaciado entre letras (charSpace de reportlab)
-  CODE_DX: 7 * 0.36,   // desplazamiento de la línea base respecto al centro del cuadrado
-  CODE_Y0: 22 + 6.5 / 2 + 7, // inicio del texto (desde el borde inferior)
-  CODE_FONTS: ['PhyPoppins', 'PhyJosefin'],  // Botánica = Poppins · Art déco = Josefin Sans
+  CODE_SIZE: 9,        // tamaño de letra (v3.2: 9 pt, negrita)
+  CODE_CS: 1.0,        // espaciado entre letras (charSpace de reportlab)
+  CODE_DX: 9 * 0.36,   // desplazamiento de la línea base respecto al centro del cuadrado
+  CODE_Y0: 22 + 2 * MM + 2 * MM + 4, // inicio del texto (desde el borde inferior) = centro + medio cuadrado + zona limpia + 4 pt
+  // Botánica = Poppins Bold · Art déco = Josefin Sans con contorno de 0,35 pt (negrita simulada)
+  CODE_FONTS: [{ family: 'PhyPoppinsB', file: 'Poppins-Bold.ttf', stroke: 0 },
+               { family: 'PhyJosefin', file: 'JosefinSans-Regular.ttf', stroke: 0.35 }],
 };
 
 // Resolución de la imagen aplanada que se envía (px de ancho; alto proporcional)

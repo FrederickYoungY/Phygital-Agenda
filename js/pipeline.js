@@ -2,7 +2,7 @@
 //  pipeline.js — Foto → fiduciarios → ID de página → página aplanada (JPEG)
 // ============================================================================
 import { OUTPUT_WIDTH, OUTPUT_QUALITY, ORIGINAL_MAX } from './config.js';
-import { toGray, detectMarkers, refineMarkers, warpPage } from './scanner.js';
+import { toGray, detectMarkers, refineMarkers, warpPage, sharpness } from './scanner.js';
 import { identifyPage, loadFonts, codeStripPreview } from './idreader.js';
 
 const FULL_MAX = 3200;      // lado mayor con el que se trabaja la foto
@@ -18,18 +18,35 @@ function drawScaled(source, sw, sh, maxSide) {
   return { c, ctx, k };
 }
 
-/** Busca los cuadrados en un frame de video (vista previa en vivo). Devuelve puntos en px del video. */
+/**
+ * Busca los cuadrados en un frame de video (vista previa en vivo).
+ * @returns {{pts:Array|null, sharp:number}} puntos en px del video y nitidez de la zona de la página.
+ */
 export function detectInFrame(video, work, maxSide = 900) {
   const vw = video.videoWidth, vh = video.videoHeight;
-  if (!vw) return null;
+  if (!vw) return { pts: null, sharp: 0 };
   const k = Math.min(1, maxSide / Math.max(vw, vh));
   const w = Math.round(vw * k), h = Math.round(vh * k);
   if (work.width !== w) { work.width = w; work.height = h; }
   const ctx = work.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, w, h);
-  const img = ctx.getImageData(0, 0, w, h);
-  const r = detectMarkers(toGray(img), w, h, { maxCandidates: 22, minArea: 6 });
-  return r ? r.pts.map(p => ({ x: p.x / k, y: p.y / k, s: p.s / k })) : null;
+  const g = toGray(ctx.getImageData(0, 0, w, h));
+  const r = detectMarkers(g, w, h, { maxCandidates: 22, minArea: 6 });
+  if (!r) return { pts: null, sharp: sharpness(g, w, h, w * .2, h * .2, w * .8, h * .8) };
+  const xs = r.pts.map(p => p.x), ys = r.pts.map(p => p.y);
+  return {
+    pts: r.pts.map(p => ({ x: p.x / k, y: p.y / k, s: p.s / k })),
+    sharp: sharpness(g, w, h, Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)),
+  };
+}
+
+/** Nitidez de una imagen candidata (canvas o bitmap), medida sobre una copia reducida. */
+export function frameSharpness(source, maxSide = 1000) {
+  const sw = source.width, sh = source.height;
+  const d = drawScaled(source, sw, sh, maxSide);
+  const img = d.ctx.getImageData(0, 0, d.c.width, d.c.height);
+  const w = d.c.width, h = d.c.height;
+  return sharpness(toGray(img), w, h, w * .1, h * .1, w * .9, h * .9);
 }
 
 /**

@@ -3,12 +3,12 @@
 //  App shell en caché (funciona sin conexión: cámara, detección y lectura del
 //  código son 100 % locales). El envío a Google se hace siempre por red.
 // ============================================================================
-const VERSION = 'phygital-v1.0.1';
+const VERSION = 'phygital-v1.2.0';
 const SHELL = [
   './', './index.html', './manifest.json',
   './js/app.js', './js/api.js', './js/auth.js', './js/config.js', './js/catalog.js',
   './js/pipeline.js', './js/scanner.js', './js/idreader.js',
-  './fonts/Poppins-Regular.ttf', './fonts/JosefinSans-Regular.ttf',
+  './fonts/Poppins-Regular.ttf', './fonts/Poppins-Bold.ttf', './fonts/JosefinSans-Regular.ttf',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
 ];
 const CDN = ['cdn.tailwindcss.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];

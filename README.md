@@ -62,7 +62,7 @@ https://aistudio.google.com → *Get API key* → crear clave.
 
 ## Si cambias la agenda
 - **Códigos o páginas:** `python tools/generar_catalogo.py "Agenda Docente 2027 - vX Codigos.csv" pwa/js/catalog.js` y sube la versión nueva de `VERSION` en `service-worker.js`.
-- **Tamaño o posición de los cuadrados / del código:** solo `PAGE` en `pwa/js/config.js`. Hoy (v3.1) los cuadrados miden **6,5 pt ≈ 2,3 mm**, a 22 pt del borde exterior, 46 pt del anillo y 22 pt arriba/abajo. Si los llevas a 5 × 5 mm, cambia `MARKER: 14.17`.
+- **Tamaño o posición de los cuadrados / del código:** solo `PAGE` en `pwa/js/config.js`. Desde la v3.2 los cuadrados miden **4 × 4 mm** con 2 mm de papel limpio alrededor, a 22 pt del borde exterior, 46 pt del anillo y 22 pt arriba/abajo; el código va en 9 pt negrita. Las versiones "Física" y "Digital" de la agenda no tienen cuadrados ni código (no se escanean).
 - **Nuevos tipos de página:** agregar la regla en `ROUTES` de `config.js` (etiqueta en la app) y en `ROUTES` de `Código.gs` (prompt, columnas y filas).
 
 ## Límites a tener en cuenta

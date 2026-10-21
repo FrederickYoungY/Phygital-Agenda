@@ -28,10 +28,11 @@
  */
 
 const APP = {
-  VERSION: '1.0.0',
+  VERSION: '1.1.0',
   YEAR: 2027,
   TZ: 'America/Santiago',
   MODEL: 'gemini-flash-latest',
+  MODELS: ['gemini-flash-latest', 'gemini-flash-lite-latest'],   // el segundo es el respaldo si el primero está saturado
   PLANIF_START: [2027, 3, 1],          // lunes de la semana 01 (S01)
   ROOT_NAME: 'Agenda Phygital 2027',
   SHEET_NAME: 'Agenda Phygital 2027 · Datos',
@@ -66,7 +67,7 @@ function doPost(e) {
     }
   } catch (err) {
     console.error(err && err.stack || err);
-    return json_({ status: 'error', code: err.code || 'internal', message: err.userMessage || String(err.message || err) });
+    return json_({ status: 'error', code: err.code || 'internal', message: err.userMessage || String(err.message || err), retry_after: err.retryAfter || undefined });
   }
 }
 
@@ -198,30 +199,33 @@ function actionScan_(req) {
 
   ensureWorkspace_(at, user);
 
-  // 1) Gemini (las páginas sin campos solo guardan la foto)
+  // 1) Fotos PRIMERO: así la página nunca se pierde, aunque Gemini falle.
+  //    Página aplanada (siempre la última versión) + foto original (historial; no se repite en reintentos).
+  let scan = upsertFile_(at, {
+    name: pageId + '.jpg', parent: user.roles.scans, mimeType: 'image/jpeg',
+    app: { phygital: 'scan', pageId: pageId }, description: 'Página ' + pageId + ' escaneada el ' + stamp,
+  }, Utilities.base64Decode(req.image), 'image/jpeg');
+  let original = null;
+  if (req.original && !req.retry) {
+    original = createFile_(at, {
+      name: pageId + ' · ' + stamp.replace(':', '.') + '.jpg', parents: [user.roles.fotos], mimeType: 'image/jpeg',
+      appProperties: { phygital: 'original', pageId: pageId },
+    }, Utilities.base64Decode(req.original), 'image/jpeg');
+  }
+
+  // 2) Gemini (las páginas sin campos solo guardan la foto)
   let data = null;
   if (route.dest !== 'photo') {
     data = gemini_(req.image, buildPrompt_(route, pageId, user));
     // Verificación del código: si la PWA no estaba segura y Gemini lee otro código del mismo tipo, se corrige.
     const leido = normCode_(data.codigo_leido);
     const chk = req.id_check || {};
-    if (leido && leido !== pageId && !chk.confirmed && routeFor_(leido).key === route.key &&
-        (!chk.alternatives || chk.alternatives.indexOf(leido) >= 0)) {
+    // (si la persona eligió el código a mano, se respeta su elección)
+    if (leido && leido !== pageId && !chk.confirmed && routeFor_(leido).key === route.key) {
       pageId = leido; route = routeFor_(pageId);
+      scan = api_(at, 'patch', DRIVE + '/' + scan.id + '?fields=' + FIELDS, { name: pageId + '.jpg', appProperties: { phygital: 'scan', pageId: pageId } });
+      if (original) api_(at, 'patch', DRIVE + '/' + original.id + '?fields=id', { name: pageId + ' · ' + stamp.replace(':', '.') + '.jpg', appProperties: { phygital: 'original', pageId: pageId } });
     }
-  }
-
-  // 2) Fotos: original (historial) + página aplanada (siempre la última)
-  const scan = upsertFile_(at, {
-    name: pageId + '.jpg', parent: user.roles.scans, mimeType: 'image/jpeg',
-    app: { phygital: 'scan', pageId: pageId }, description: 'Página ' + pageId + ' escaneada el ' + stamp,
-  }, Utilities.base64Decode(req.image), 'image/jpeg');
-  let original = null;
-  if (req.original) {
-    original = createFile_(at, {
-      name: pageId + ' · ' + stamp.replace(':', '.') + '.jpg', parents: [user.roles.fotos], mimeType: 'image/jpeg',
-      appProperties: { phygital: 'original', pageId: pageId },
-    }, Utilities.base64Decode(req.original), 'image/jpeg');
   }
 
   const out = { status: 'ok', page_id: pageId, destino: route.dest, photo_url: scan.webViewLink, resumen: (data && data.resumen) || '' };
@@ -414,27 +418,38 @@ function buildPrompt_(route, pageId, user) {
 }
 
 function gemini_(imageB64, prompt) {
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + APP.MODEL + ':generateContent';
   const body = {
     contents: [{ role: 'user', parts: [{ inline_data: { mime_type: 'image/jpeg', data: imageB64 } }, { text: prompt }] }],
     generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
   };
   const opts = { method: 'post', contentType: 'application/json', payload: JSON.stringify(body), muteHttpExceptions: true,
                  headers: { 'x-goog-api-key': prop_('GEMINI_API_KEY') } };
-  let last = '';
-  for (let i = 0; i < 4; i++) {
-    const r = UrlFetchApp.fetch(url, opts);
-    const code = r.getResponseCode();
-    const j = JSON.parse(r.getContentText() || '{}');
-    if (code === 200 && j.candidates && j.candidates[0] && j.candidates[0].content) {
-      const text = (j.candidates[0].content.parts || []).filter(function (p) { return p.text && !p.thought; }).map(function (p) { return p.text; }).join('');
-      return parseJson_(text);
+  const SATURADO = /overloaded|high demand|unavailable|resource.?exhausted|quota|rate/i;
+  let last = '', saturado = false;
+  for (let m = 0; m < APP.MODELS.length; m++) {
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + APP.MODELS[m] + ':generateContent';
+    for (let i = 0; i < 3; i++) {
+      const r = UrlFetchApp.fetch(url, opts);
+      const code = r.getResponseCode();
+      let j = {};
+      try { j = JSON.parse(r.getContentText() || '{}'); } catch (e) { /* respuesta no JSON */ }
+      if (code === 200 && j.candidates && j.candidates[0] && j.candidates[0].content) {
+        const text = (j.candidates[0].content.parts || []).filter(function (p) { return p.text && !p.thought; }).map(function (p) { return p.text; }).join('');
+        return parseJson_(text);
+      }
+      last = (j.error && j.error.message) || ('HTTP ' + code);
+      saturado = [429, 500, 502, 503, 504].indexOf(code) >= 0 || SATURADO.test(last);
+      if (!saturado) break;                      // error de verdad (clave, imagen…): no insistir
+      Utilities.sleep(1200 * Math.pow(2, i));
     }
-    last = (j.error && j.error.message) || ('HTTP ' + code);
-    if ([429, 500, 502, 503, 504].indexOf(code) < 0 && !/overloaded|high demand/i.test(last)) break;
-    Utilities.sleep(1500 * Math.pow(2, i));
+    if (!saturado) break;
+    console.warn('Modelo saturado: ' + APP.MODELS[m] + ' → probando respaldo');
   }
-  throw new AppError(/quota|429/i.test(last) ? 'busy' : 'gemini', 'Gemini no pudo leer la página: ' + last);
+  if (saturado) {
+    const e = new AppError('busy', 'Gemini está saturado en este momento. La foto ya quedó guardada en tu Drive; la página se procesará sola en unos minutos.');
+    e.retryAfter = 120; throw e;
+  }
+  throw new AppError('gemini', 'Gemini no pudo leer la página: ' + last);
 }
 
 function parseJson_(t) {
@@ -636,8 +651,10 @@ function verificarConfiguracion() {
     const v = PropertiesService.getScriptProperties().getProperty(k);
     console.log(k + ': ' + (v ? 'OK (' + v.slice(0, 6) + '…)' : 'FALTA'));
   });
-  const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + APP.MODEL + '?key=' + prop_('GEMINI_API_KEY'), { muteHttpExceptions: true });
-  console.log('Gemini (' + APP.MODEL + '): HTTP ' + r.getResponseCode());
+  APP.MODELS.forEach(function (m) {
+    const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m, { muteHttpExceptions: true, headers: { 'x-goog-api-key': prop_('GEMINI_API_KEY') } });
+    console.log('Gemini (' + m + '): HTTP ' + r.getResponseCode());
+  });
 }
 
 /** Cantidad de usuarios vinculados. */
