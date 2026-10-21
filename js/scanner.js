@@ -299,3 +299,70 @@ export function sharpness(g, w, h, x0 = 0, y0 = 0, x1 = w, y1 = h) {
   }
   return n ? s2 / n - (s / n) ** 2 : 0;
 }
+
+// ---------------------------------------------- 7) búsqueda dentro de un visor
+/**
+ * Busca UN cuadrado macizo dentro del rectángulo [x0,x1)×[y0,y1) (visor fijo en pantalla).
+ * Solo analiza esa zona: es rápido y no se confunde con el resto de la página.
+ * @returns {{x,y,s}|null} centro y lado aproximado (px de la imagen g)
+ */
+export function findMarkerInRegion(g, w, h, x0, y0, x1, y1) {
+  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0));
+  x1 = Math.min(w, Math.ceil(x1)); y1 = Math.min(h, Math.ceil(y1));
+  const cw = x1 - x0, ch = y1 - y0;
+  if (cw < 8 || ch < 8) return null;
+  const side = Math.min(cw, ch);
+  // umbral: más oscuro que el 60 % del promedio local (ventana ~ 1/3 del visor) y bajo 170
+  const r = Math.max(3, Math.round(side / 6));
+  const I = new Float64Array((cw + 1) * (ch + 1)), W1 = cw + 1;
+  for (let y = 1; y <= ch; y++) {
+    let row = 0;
+    const o = (y0 + y - 1) * w + x0;
+    for (let x = 1; x <= cw; x++) { row += g[o + x - 1]; I[y * W1 + x] = I[(y - 1) * W1 + x] + row; }
+  }
+  const mask = new Uint8Array(cw * ch);
+  for (let y = 0; y < ch; y++) {
+    const ya = Math.max(0, y - r), yb = Math.min(ch, y + r + 1);
+    for (let x = 0; x < cw; x++) {
+      const xa = Math.max(0, x - r), xb = Math.min(cw, x + r + 1);
+      const sum = I[yb * W1 + xb] - I[ya * W1 + xb] - I[yb * W1 + xa] + I[ya * W1 + xa];
+      const v = g[(y0 + y) * w + x0 + x];
+      if (v * (yb - ya) * (xb - xa) < sum * 0.62 && v < 170) mask[y * cw + x] = 1;
+    }
+  }
+  const label = new Uint8Array(cw * ch), stack = new Int32Array(cw * ch);
+  let best = null;
+  const minS = side * 0.06, maxS = side * 0.75;
+  for (let p = 0; p < mask.length; p++) {
+    if (!mask[p] || label[p]) continue;
+    let sp = 0; stack[sp++] = p; label[p] = 1;
+    let n = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, touches = false;
+    while (sp) {
+      const q = stack[--sp], x = q % cw, y = (q / cw) | 0;
+      n++; sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
+      if (x === 0 || y === 0 || x === cw - 1 || y === ch - 1) touches = true;
+      for (let dy = -1; dy <= 1; dy++) {
+        const yy = y + dy; if (yy < 0 || yy >= ch) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx; if (xx < 0 || xx >= cw) continue;
+          const qq = yy * cw + xx;
+          if (mask[qq] && !label[qq]) { label[qq] = 1; stack[sp++] = qq; }
+        }
+      }
+    }
+    const s = Math.sqrt(n);
+    if (touches || s < minS || s > maxS || n < 6) continue;
+    const mx = sx / n, my = sy / n;
+    const cxx = sxx / n - mx * mx + 1 / 12, cyy = syy / n - my * my + 1 / 12, cxy = sxy / n - mx * my;
+    const det = cxx * cyy - cxy * cxy; if (det <= 0) continue;
+    const solidity = n / (12 * Math.sqrt(det));
+    const tr = cxx + cyy, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
+    const elong = (tr / 2 + disc) / Math.max(1e-6, tr / 2 - disc);
+    if (solidity < 0.75 || solidity > 1.25 || elong > 2.4) continue;
+    // preferir el más macizo, más grande y más cerca del centro del visor
+    const dc = Math.hypot(mx - cw / 2, my - ch / 2) / side;
+    const score = s * (1.2 - Math.abs(1 - solidity)) * (1.2 - dc);
+    if (!best || score > best.score) best = { x: x0 + mx + 0.5, y: y0 + my + 0.5, s, score };
+  }
+  return best;
+}

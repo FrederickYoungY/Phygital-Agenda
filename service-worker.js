@@ -3,7 +3,7 @@
 //  App shell en caché (funciona sin conexión: cámara, detección y lectura del
 //  código son 100 % locales). El envío a Google se hace siempre por red.
 // ============================================================================
-const VERSION = 'phygital-v1.2.0';
+const VERSION = 'phygital-v1.3.0';
 const SHELL = [
   './', './index.html', './manifest.json',
   './js/app.js', './js/api.js', './js/auth.js', './js/config.js', './js/catalog.js',

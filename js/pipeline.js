@@ -2,7 +2,7 @@
 //  pipeline.js — Foto → fiduciarios → ID de página → página aplanada (JPEG)
 // ============================================================================
 import { OUTPUT_WIDTH, OUTPUT_QUALITY, ORIGINAL_MAX } from './config.js';
-import { toGray, detectMarkers, refineMarkers, warpPage, sharpness } from './scanner.js';
+import { toGray, detectMarkers, refineMarkers, warpPage, sharpness, findMarkerInRegion, orderClockwise } from './scanner.js';
 import { identifyPage, loadFonts, codeStripPreview } from './idreader.js';
 
 const FULL_MAX = 3200;      // lado mayor con el que se trabaja la foto
@@ -40,6 +40,27 @@ export function detectInFrame(video, work, maxSide = 900) {
   };
 }
 
+/**
+ * Busca un cuadrado dentro de cada visor (rectángulos en px del video).
+ * @returns {{found: Array<{x,y,s}|null>, sharp:number}}
+ */
+export function detectInBoxes(video, work, boxes, maxSide = 1000) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw) return { found: boxes.map(() => null), sharp: 0 };
+  const k = Math.min(1, maxSide / Math.max(vw, vh));
+  const w = Math.round(vw * k), h = Math.round(vh * k);
+  if (work.width !== w) { work.width = w; work.height = h; }
+  const ctx = work.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(video, 0, 0, w, h);
+  const g = toGray(ctx.getImageData(0, 0, w, h));
+  const found = boxes.map(b => {
+    const r = findMarkerInRegion(g, w, h, b.x0 * k, b.y0 * k, b.x1 * k, b.y1 * k);
+    return r && { x: r.x / k, y: r.y / k, s: r.s / k };
+  });
+  const xs = boxes.map(b => (b.x0 + b.x1) / 2 * k), ys = boxes.map(b => (b.y0 + b.y1) / 2 * k);
+  return { found, sharp: sharpness(g, w, h, Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)) };
+}
+
 /** Nitidez de una imagen candidata (canvas o bitmap), medida sobre una copia reducida. */
 export function frameSharpness(source, maxSide = 1000) {
   const sw = source.width, sh = source.height;
@@ -60,9 +81,21 @@ export async function processPhoto(source, opts = {}) {
   const full = drawScaled(bmp, sw, sh, FULL_MAX);
   const fullImg = full.ctx.getImageData(0, 0, full.c.width, full.c.height);
 
-  // 1) cuadrados fiduciarios (búsqueda a resolución media, varias escalas si hace falta)
+  // 1) cuadrados fiduciarios: primero cerca de las pistas (visores), si no, en toda la imagen
   let pts = null;
-  for (const m of [DETECT_MAX, 1100, 2200]) {
+  if (opts.hints && opts.hints.length === 4) {
+    const f = full.c.width / (opts.hintW || sw);          // pistas vienen en px de la imagen de origen
+    const d = drawScaled(full.c, full.c.width, full.c.height, DETECT_MAX);
+    const g = toGray(d.ctx.getImageData(0, 0, d.c.width, d.c.height));
+    const kk = f * d.k;
+    const got = opts.hints.map(hp => {
+      const R = Math.max(hp.s * 2.5, (opts.hintBox || hp.s * 5) / 2) * kk;
+      const r = findMarkerInRegion(g, d.c.width, d.c.height, hp.x * kk - R, hp.y * kk - R, hp.x * kk + R, hp.y * kk + R);
+      return r && { x: r.x / d.k, y: r.y / d.k, s: r.s / d.k };
+    });
+    if (got.every(Boolean)) pts = orderClockwise(got);
+  }
+  for (const m of pts ? [] : [DETECT_MAX, 1100, 2200]) {
     const d = drawScaled(full.c, full.c.width, full.c.height, m);
     const img = d.ctx.getImageData(0, 0, d.c.width, d.c.height);
     const r = detectMarkers(toGray(img), d.c.width, d.c.height, { maxCandidates: 32 });
