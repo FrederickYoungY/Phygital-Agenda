@@ -4,7 +4,7 @@
 // ============================================================================
 
 // 1) ID de cliente OAuth 2.0 (tipo "Aplicación web") de tu proyecto de Google Cloud.
-export const GOOGLE_CLIENT_ID = 'PEGA_AQUI_TU_CLIENT_ID.apps.googleusercontent.com';
+export const GOOGLE_CLIENT_ID = '1073410347946-a375eqt9e4d77cg77j7kula30id2m1q2.apps.googleusercontent.com';
 
 // 2) URL de la implementación de Apps Script (termina en /exec).
 export const WEBHOOK_URL = 'https://script.google.com/macros/s/PEGA_AQUI_EL_ID_DE_IMPLEMENTACION/exec';
