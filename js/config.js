@@ -7,7 +7,7 @@
 export const GOOGLE_CLIENT_ID = '1073410347946-a375eqt9e4d77cg77j7kula30id2m1q2.apps.googleusercontent.com';
 
 // 2) URL de la implementación de Apps Script (termina en /exec).
-export const WEBHOOK_URL = 'https://script.google.com/macros/s/PEGA_AQUI_EL_ID_DE_IMPLEMENTACION/exec';
+export const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw5NZPc6fulkrfSehyaDmedICYk2oEx4_W7xm20tDZRXDRNpQFueNRFu58N1ZMh5CU6/exec';
 
 // Permisos que se piden al usuario: solo los archivos que crea la app (no ve el resto de su Drive).
 export const OAUTH_SCOPES = 'openid email https://www.googleapis.com/auth/drive.file';
