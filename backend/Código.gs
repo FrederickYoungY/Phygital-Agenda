@@ -28,7 +28,7 @@
  */
 
 const APP = {
-  VERSION: '1.1.0',
+  VERSION: '1.1.1',
   YEAR: 2027,
   TZ: 'America/Santiago',
   MODEL: 'gemini-flash-latest',
@@ -275,7 +275,16 @@ function val_(v) {
   if (/^-?\d+([.,]\d+)?$/.test(s)) return Number(s.replace(',', '.'));
   return /^[=+@]/.test(s) ? "'" + s : s;          // evita fórmulas accidentales
 }
-function list_(a) { return Array.isArray(a) ? a : []; }
+// Lista sin elementos vacíos: descarta casillas o líneas sin texto (p. ej. {texto: null, hecho: false})
+function list_(a) {
+  if (!Array.isArray(a)) return [];
+  const vacio = function (v) { return v === null || v === undefined || v === false || (typeof v === 'string' && (!v.trim() || /^(null|none|n\/a|-+)$/i.test(v.trim()))); };
+  return a.filter(function (it) {
+    if (it === null || it === undefined) return false;
+    if (typeof it !== 'object') return !vacio(it);
+    return Object.keys(it).some(function (k) { return typeof it[k] !== 'boolean' && typeof it[k] !== 'number' && !vacio(it[k]); });
+  });
+}
 
 const ROUTES = [
   { key: 'datos', re: /^(DP|DAT_\d+)$/, dest: 'sheet', label: 'Datos personales', tab: 'Datos personales', cols: ['Campo', 'Valor'],
@@ -406,6 +415,7 @@ function buildPrompt_(route, pageId, user) {
     'Reglas:',
     '- Transcribe SOLO lo escrito a mano. Ignora títulos, etiquetas, números de página, pestañas y adornos impresos, salvo que se pidan.',
     '- No inventes nada. Si algo es ilegible escribe [ilegible]. Omite los campos vacíos (o usa null).',
+    '- NO incluyas casillas, líneas ni filas vacías: si una casilla o línea no tiene nada escrito a mano, no la pongas en la lista ni en el HTML. Nunca escribas la palabra "null".',
     '- Respeta la ortografía de la persona salvo errores evidentes de lectura. Fechas en formato AAAA-MM-DD (año ' + APP.YEAR + ' si no se indica).',
     '- Lee también el código pequeño impreso girado 90° en la esquina inferior exterior (p. ej. "M02_L", "S05_R", "E12") y entrégalo en "codigo_leido".',
     '- Formato HTML (solo cuando se pida "html"): usa únicamente <h2>, <h3>, <p>, <ul>, <ol>, <li>, <b>, <i>, <u>, <table>, <tr>, <th>, <td>, <br>. Casillas como ☐ / ☑. Conserva el orden y la estructura de la página.',
@@ -566,6 +576,10 @@ function writeDoc_(at, user, route, ctx, d) {
 function esc_(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function sanitize_(h) {
   return String(h)
+    .replace(/<li>\s*(?:[☐☑✓✔]\s*)?(?:null|none)?\s*<\/li>/gi, '')
+    .replace(/<p>\s*(?:[☐☑]\s*)?(?:null)?\s*<\/p>/gi, '')
+    .replace(/<(ul|ol)>\s*<\/\1>/gi, '')
+    .replace(/>\s*null\s*</gi, '><')
     .replace(/<\s*(script|style|iframe|object|embed|link|meta)[\s\S]*?(<\/\s*\1\s*>|\/?>)/gi, '')
     .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
     .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '');

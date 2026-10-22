@@ -463,7 +463,7 @@ def tabs(c, active):
         link(c, dest, x, y + 1.1, w, th - 2.2)
 
 def header(c, title, kicker=None, col='blush', deco=True, size=22):
-    if kicker: lab(c, ML, TOP - 6, kicker, P[col][1], 6.2, cs=2)
+    if kicker: lab(c, ML, TOP - 6, kicker, P[col][1], 6.8, cs=2)
     st(c, ML, TOP - 32, T(title), 'Serif', size * (.86 if UPPER else 1), INK, TITLE_CS)
     hline(c, ML, ML + 30, TOP - 42, P[col][1] if not DECO else ORN, 1.1)
     if deco:
@@ -495,8 +495,8 @@ def panel(c, x, y, w, h, title=None, col='blush', kind=None, gap=16):
     tp = 9
     if title:
         bullet(c, x + 11, y + h - 12.6, col)
-        lab(c, x + 17, y + h - 14.8, title, INK, 6)
-        tp = 22
+        lab(c, x + 17, y + h - 15.2, title, INK, 7)
+        tp = 23
     ytop = y + h - tp
     if kind == 'lines':
         yy = ytop - gap + 4
@@ -609,8 +609,8 @@ def p_datos(c, kw):
     rowh = (ph - 30) / len(campos)
     yy = y - 30
     for t in campos:
-        lab(c, ML + 12, yy - rowh + 8, t, MUTED, 5.4, cs=1)
-        wline(c, ML + 138, MR - 12, yy - rowh + 6, rowh)
+        lab(c, ML + 12, yy - rowh + 8, t, MUTED, 7, cs=1)
+        wline(c, ML + 172, MR - 12, yy - rowh + 6, rowh)
         yy -= rowh
 
 def p_indice(c, kw):
@@ -678,7 +678,7 @@ def p_minical(c, kw):
         mini_cal(c, ML + 8, yt - 3, calw - 8, m, size=5.1)
         x2 = ML + calw + 14
         bullet(c, x2 + 2, yt - 10.4, col)
-        lab(c, x2 + 8, yt - 12.4, 'Hitos y fechas clave', INK, 5.6)
+        lab(c, x2 + 8, yt - 12.6, 'Hitos y fechas clave', INK, 6.6)
         yy = yt - 26
         while yy > yt - bh + 6:
             wline(c, x2, MR - 10, yy, 13); yy -= 13
@@ -811,13 +811,13 @@ def p_sec_jefatura(c, kw):
         for t in ['Curso', 'Sala', 'Atención de apoderados', 'Correo del curso', 'Co-docente / asistente',
                   'Presidente/a de curso', 'Presidente/a de apoderados']:
             if yy < BOT + 10: break
-            lab(c, ML + 12, yy, t, MUTED, 5.2, cs=.9); wline(c, ML + 150, MR - 12, yy - 2, 16); yy -= 19
+            lab(c, ML + 12, yy, t, MUTED, 6.6, cs=.9); wline(c, ML + 165, MR - 12, yy - 2, 16); yy -= 20
     section_cover(c, 'Jefatura', 'Sección', '“Cada estudiante es un mundo.”', 'lav',
                   [('Alumnos de mi jefatura', 'J_A'), ('Cumpleaños del curso', 'J_C')], extra)
 
 def p_jef_alumnos(c, kw):
     y = header(c, 'Alumnos de mi jefatura', 'Jefatura', 'lav', deco=False)
-    lab(c, MR - 120, TOP - 30, 'Curso', MUTED, 5.6); wline(c, MR - 92, MR, TOP - 32, 12)
+    lab(c, MR - 124, TOP - 30, 'Curso', MUTED, 6.8); wline(c, MR - 92, MR, TOP - 32, 12)
     cols = [('N°', .06), ('Nombre estudiante', .34), ('Contacto est.', .17), ('Nombre apoderado', .26), ('Contacto\napod.', .17)]
     n = 45
     grid_table(c, ML, y, CW, cols, n, (y - BOT - 18) / n, 'lav', 18, numbered=True, zebra=True)
@@ -837,8 +837,8 @@ def p_sec_cursos(c, kw):
         yy = y - 30
         for k in range(1, N_CURSOS + 1):
             code = 'C%02d_S1' % k
-            lab(c, ML + 12, yy - rh + 6, 'Curso %02d' % k, INK, 5.4, cs=1)
-            wline(c, ML + 70, MR - 40, yy - rh + 4, rh)
+            lab(c, ML + 12, yy - rh + 6, 'Curso %02d' % k, INK, 6.8, cs=1)
+            wline(c, ML + 82, MR - 40, yy - rh + 4, rh)
             st(c, MR - 12, yy - rh + 6, str(NUM[code]), 'SansR', 6.5, MUTED, 0, 'r')
             link(c, code, MR - 36, yy - rh + 2, 26, rh - 2)
             yy -= rh
@@ -846,7 +846,7 @@ def p_sec_cursos(c, kw):
                   [('Registro de notas', 'C01_S1'), ('Temporalización', 'C01_T1')], extra)
 
 def course_head(c, k, kicker, col):
-    lab(c, ML, TOP - 6, kicker, P[col][1], 6.2, cs=2)
+    lab(c, ML, TOP - 6, kicker, P[col][1], 6.8, cs=2)
     w = st(c, ML, TOP - 32, T('Curso %02d' % k), 'Serif', 22 * (.86 if UPPER else 1), INK, TITLE_CS)
     wline(c, ML + w + 8, ML + w + 120, TOP - 32, 14, 8)
     hline(c, ML, ML + 30, TOP - 42, P[col][1] if not DECO else ORN, 1.1)
@@ -910,7 +910,7 @@ def p_planif(c, kw):
     fin = lun + dt.timedelta(days=5)
     col = MONTH_COL[lun.month - 1]
     lab(c, ML, TOP - 6, 'Planificación semanal  ·  %d %s – %d %s' % (lun.day, MESES[lun.month - 1].lower(),
-                                                                      fin.day, MESES[fin.month - 1].lower()), P[col][1], 6.2, cs=2)
+                                                                      fin.day, MESES[fin.month - 1].lower()), P[col][1], 6.8, cs=2)
     w = st(c, ML, TOP - 32, T('Semana %02d' % s), 'Serif', 22 * (.86 if UPPER else 1), INK, TITLE_CS)
     flower(c, ML + w + 10, TOP - 25, 3.4, col)
     hline(c, ML, ML + 30, TOP - 42, P[col][1] if not DECO else ORN, 1.1)
@@ -968,23 +968,23 @@ def p_sec_entrev(c, kw):
 
 def p_entrev(c, kw):
     k = kw['k']; col = 'peach'
-    lab(c, ML, TOP - 6, 'Registro de entrevista', P[col][1], 6.2, cs=2)
+    lab(c, ML, TOP - 6, 'Registro de entrevista', P[col][1], 6.8, cs=2)
     st(c, ML, TOP - 32, T('Entrevista con apoderado'), 'Serif', 20 * (.84 if UPPER else 1), INK, TITLE_CS)
     hline(c, ML, ML + 30, TOP - 42, P[col][1] if not DECO else ORN, 1.1)
     pill(c, MR, TOP - 30, 'N° %02d' % k, col, 'E_P', 'r', solid=True)
     y = TOP - 52
     hw = (CW - 10) / 2
-    panel(c, ML, y - 112, CW, 112, 'Datos de la entrevista', col)
+    panel(c, ML, y - 126, CW, 126, 'Datos de la entrevista', col)
     yy = y - 36
     for a, b2 in [('Fecha', 'Hora'), ('Curso', 'Asignatura'), ('Estudiante', 'RUT'), ('Apoderado', 'Parentesco'), ('Contacto', 'Correo')]:
-        lab(c, ML + 12, yy, a, MUTED, 5.2, cs=.8); wline(c, ML + 66, ML + hw - 4, yy - 2, 15)
-        lab(c, ML + hw + 12, yy, b2, MUTED, 5.2, cs=.8); wline(c, ML + hw + 66, MR - 12, yy - 2, 15)
-        yy -= 16
-    y -= 122
-    lab(c, ML + 2, y - 6, 'Citado por', MUTED, 5.2)
-    x = ML + 50
+        lab(c, ML + 12, yy, a, MUTED, 6.6, cs=.8); wline(c, ML + 78, ML + hw - 4, yy - 2, 16)
+        lab(c, ML + hw + 12, yy, b2, MUTED, 6.6, cs=.8); wline(c, ML + hw + 78, MR - 12, yy - 2, 16)
+        yy -= 18
+    y -= 136
+    lab(c, ML + 2, y - 7, 'Citado por', MUTED, 6.6)
+    x = ML + 2 + pdfmetrics.stringWidth('CITADO POR', 'SansM', 6.6) + 1.2 * 9 + 10
     for t in ['Docente', 'Apoderado', 'Convivencia', 'Dirección', 'Otro']:
-        checkbox(c, x, y - 8, 5.4); st(c, x + 8, y - 7, t, 'Sans', 7); x += 60
+        checkbox(c, x, y - 9, 6.2); st(c, x + 9, y - 8, t, 'Sans', 8.5); x += 22 + pdfmetrics.stringWidth(t, 'Sans', 8.5)
     y -= 18
     h = (y - BOT - 82) / 2
     panel(c, ML, y - h, CW, h, 'Motivo de la entrevista', 'blush', 'lines', 16)
@@ -1005,9 +1005,9 @@ def p_sec_apuntes(c, kw):
 def p_apuntes(c, kw):
     k = kw['k']; col = CYCLE[k % 6]
     y = header(c, 'Apuntes', 'Hoja %02d' % k, col, size=20)
-    checkbox(c, ML, y - 3); st(c, ML + 10, y - 2, 'Apuntes', 'Sans', 7.5)
-    checkbox(c, ML + 60, y - 3); st(c, ML + 70, y - 2, 'Reunión', 'Sans', 7.5)
-    lab(c, MR - 110, y - 2, 'Fecha', MUTED, 5.6); wline(c, MR - 84, MR, y - 4, 12)
+    checkbox(c, ML, y - 3); st(c, ML + 10, y - 2, 'Apuntes', 'Sans', 8.5)
+    checkbox(c, ML + 66, y - 3); st(c, ML + 76, y - 2, 'Reunión', 'Sans', 8.5)
+    lab(c, MR - 114, y - 2, 'Fecha', MUTED, 6.8); wline(c, MR - 84, MR, y - 4, 12)
     y -= 14
     panel(c, ML, BOT, CW, y - BOT, None, col, 'lines', 17)
 
