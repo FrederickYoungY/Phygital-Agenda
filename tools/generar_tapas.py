@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Tapa y contratapa de la Agenda Docente 2027 (v3.2), formato B5 + 3 mm de sangrado.
+Tapa y contratapa de la Agenda Docente 2027 (v3.3), formato B5 + 3 mm de sangrado.
   python generar_tapas.py botanico|artdeco [salida.pdf]
-Genera 3 páginas: tapa · contratapa con QR (versión "Escanear") · contratapa sin QR (Física / Digital).
+Genera 2 páginas: tapa y contratapa (el QR de la app va en el interior de la contratapa, dentro de la agenda).
 """
 import sys, os, importlib.util
 from reportlab.pdfgen import canvas
@@ -12,11 +12,11 @@ from reportlab.graphics.shapes import Drawing
 from reportlab.graphics import renderPDF
 
 STYLE = (sys.argv[1] if len(sys.argv) > 1 else 'botanico').lower()
-OUT = sys.argv[2] if len(sys.argv) > 2 else 'Agenda Docente 2027 - v3.2 %s - Tapas (B5).pdf' % ('Art Deco' if STYLE == 'artdeco' else 'Botanica')
+OUT = sys.argv[2] if len(sys.argv) > 2 else 'Agenda Docente 2027 - v3.3 %s - Tapas (B5).pdf' % ('Art Deco' if STYLE == 'artdeco' else 'Botanica')
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.argv = [sys.argv[0], STYLE]
 os.environ['VARIANT'] = 'digital'                     # fondos de color
-spec = importlib.util.spec_from_file_location('ag', os.path.join(HERE, 'generar_agenda_v32.py'))
+spec = importlib.util.spec_from_file_location('ag', os.path.join(HERE, 'generar_agenda_v33.py'))
 ag = importlib.util.module_from_spec(spec); spec.loader.exec_module(ag)
 
 W, H = ag.W, ag.H
@@ -43,7 +43,7 @@ def credits(cx, y, ink, muted, serif_size=13):
     yy = y - 22
     for t in ['© %d %s' % (ag.ANIO_IMPRESION, ag.AUTOR), 'Año de impresión: %d' % ag.ANIO_IMPRESION,
               'Todos los derechos reservados.', 'Prohibida su reproducción total o parcial sin autorización del autor.']:
-        ag.st(c, cx, yy, t, 'Sans', 8, muted, 0, 'c'); yy -= 13
+        ag.st(c, cx, yy, t, 'Sans', 8.5, muted, 0, 'c'); yy -= 13.5
     return yy
 
 def scan_block(cx, y, ink, muted, fg, bg):
@@ -72,16 +72,15 @@ if not ag.DECO:
     ag.st(c, cx, y0 - 34, 'Docente', 'SerifIt', 62, ROSE, 0, 'c')
     ag.hline(c, cx - 30, cx + 30, y0 - 62, ROSE, 1.2)
     ag.st(c, cx, y0 - 96, str(ag.YEAR), 'Serif', 26, INK, 10, 'c')
-    ag.lab(c, cx - 120, 92, 'Nombre', MUT, 7.5, cs=2); ag.hline(c, cx - 70, cx + 120, 90, ROSE, .7)
     c.showPage()
     # contratapa con QR / sin QR
-    for with_qr in (True, False):
-        page(BG)
-        ag.blob(c, 30, H - 40, 160, 'sage', .45); ag.blob(c, W - 20, 60, 140, 'blush', .45)
-        ag.sprig(c, 40, H - 170, 1.2, 25, 'sage', .7, n=9); ag.flower(c, W - 120, 120, 8, 'blush')
-        if with_qr: scan_block(cx, H * .66, INK, MUT, INK, HexColor('#FFFFFF'))
-        credits(cx, H * .30 if with_qr else H * .5, INK, MUT)
-        c.showPage()
+    page(BG)
+    ag.blob(c, 30, H - 40, 190, 'sage', .45); ag.blob(c, W - 10, H * .45, 120, 'blush', .4)
+    ag.blob(c, W - 80, H - 120, 34, 'butter', .7)
+    ag.sprig(c, 40, H - 190, 1.4, 25, 'sage', .7, n=10); ag.flower(c, W - 70, H * .45 + 40, 9, 'blush')
+    ag.flower(c, 150, H - 90, 6, 'lav')
+    credits(cx, 118, INK, MUT)
+    c.showPage()
 else:
     # ---------------------------------------------------------------- ART DÉCO
     def frame_deco(col):
@@ -106,13 +105,11 @@ else:
     ag.st(c, cx, y0 - 10, 'DOCENTE', 'Serif', 40, CREAM, 8, 'c')
     ag.hline(c, cx - 60, cx + 60, y0 - 28, GOLD, 1)
     ag.st(c, cx, y0 - 52, str(ag.YEAR), 'Serif', 22, GOLD, 10, 'c')
-    ag.lab(c, cx - 120, 96, 'Nombre', GOLD, 7.5, cs=2); ag.hline(c, cx - 70, cx + 120, 94, GOLD, .7)
     c.showPage()
-    for with_qr in (True, False):
-        page(NAVY)
-        frame_deco(GOLD)
-        if with_qr: scan_block(cx, H * .68, CREAM, HexColor('#C9C2A8'), NAVY, CREAM)
-        credits(cx, H * .30 if with_qr else H * .5, CREAM, HexColor('#C9C2A8'))
-        c.showPage()
+    page(NAVY)
+    frame_deco(GOLD)
+    c.saveState(); ag.ORN = GOLD; ag.deco_fan(c, cx, H * .60, 60, 0, .9); c.restoreState()
+    credits(cx, 128, CREAM, HexColor('#D8D1B8'))
+    c.showPage()
 c.save()
 print('ok', OUT)
